@@ -1,3 +1,9 @@
+package src;
+
+import sun.awt.geom.AreaOp;
+
+import java.util.Scanner;
+
 public class scriptPI {
     public static void main(String args[]) {
 
@@ -31,7 +37,10 @@ public class scriptPI {
 
         System.out.println(getString("Sergey"));
 
-        System.out.println(getYear(2024));
+        Scanner userInput = new Scanner(System.in);
+        System.out.println("Введите год >>>");
+        int yearInput = userInput.nextInt();
+        System.out.println(getYear(yearInput));
     }
 
     static int getSum(int a, int b, int c, int d) {
@@ -47,24 +56,27 @@ public class scriptPI {
         }
     }
 
-    static String getNum(int nunB){
-        if(nunB >= 0){
+    static String getNum(int nunB) {
+        if (nunB >= 0) {
             return nunB + " положительное число";
         } else {
             return nunB + " отрицательное число";
         }
     }
-    static boolean getBoolNumber(int boolNumber){
-        if(boolNumber < 0){
+
+    static boolean getBoolNumber(int boolNumber) {
+        if (boolNumber < 0) {
             return true;
-        }else {
+        } else {
             return false;
         }
     }
-    static String getString(String getName){
+
+    static String getString(String getName) {
         return "Привет " + getName;
     }
-    static String getYear(int yearLeap){
+
+    static String getYear(int yearLeap) {
         if (((yearLeap % 4 == 0) && !(yearLeap % 100 == 0)) || (yearLeap % 400 == 0))
             return yearLeap + " год, является високосным";
         else
