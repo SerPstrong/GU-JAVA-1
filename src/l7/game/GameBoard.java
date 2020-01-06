@@ -6,32 +6,44 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class GameBoard extends JFrame {
-    static int dimension = 3;             // размерность
-    static int cellSize = 150;            // размер одной клетки
-    private char[][] gameField;           // матрица игры
-    private GameButton[] gameButtons;     // массив кнопок
+    static final int dimension = 3; //размерность
+    static int cellSize = 150; //размер одной клетки
+    private char[][] gameField; //матрица игры
+    private GameButton[] gameButtons; //массив кнопок
 
-    private Game game;                    // ссылка на игру
+    private Game game; //ссылка на игру
 
-    static char nullSymbol = '\u0000';    // null символ
+    static char nullSymbol = '\u0000'; //null символ
+
+    //элементы смарт логики
+    //protected static int[][] priority;
+    protected static final boolean smartMode = true;
+
+
 
     public GameBoard(Game currentGame) {
         this.game = currentGame;
         initField();
     }
 
+    protected boolean getMode(){
+        return smartMode;
+    }
+    protected char getFieldData(int x, int y){
+        return gameField[x][y];
+    }
+
     /**
      * Метод инициации и отрисовки игрового поля
      */
     private void initField() {
-        // задаем основные настройки окна игры
+        //задаем основные настройки окна игры
         setBounds(cellSize * dimension, cellSize * dimension, 400, 300);
         setTitle("Крестики-нолики");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         setLayout(new BorderLayout());
-
-        JPanel controlPanel = new JPanel(); // панель управления игрой
+        JPanel controlPanel = new JPanel(); //панель управления игрой
         JButton newGameButton = new JButton("Новая игра");
         newGameButton.addActionListener(new ActionListener() {
             @Override
@@ -44,14 +56,14 @@ public class GameBoard extends JFrame {
         controlPanel.add(newGameButton);
         controlPanel.setSize(cellSize * dimension, 150);
 
-        JPanel gameFieldPanel = new JPanel(); // панель самой игры
+        JPanel gameFieldPanel = new JPanel(); //панель самой игры
         gameFieldPanel.setLayout(new GridLayout(dimension, dimension));
         gameFieldPanel.setSize(cellSize * dimension, cellSize * dimension);
 
         gameField = new char[dimension][dimension];
         gameButtons = new GameButton[dimension * dimension];
 
-        // инициализируем игровое поле
+        //инициализируем игровое поле
         for (int i = 0; i < (dimension * dimension); i++) {
             GameButton fieldButton = new GameButton(i, this);
             gameFieldPanel.add(fieldButton);
@@ -76,8 +88,15 @@ public class GameBoard extends JFrame {
 
             gameField[x][y] = nullSymbol;
         }
+
     }
 
+
+    /**
+     * что ты такое
+     *
+     * @return
+     */
     Game getGame() {
         return game;
     }
@@ -85,13 +104,12 @@ public class GameBoard extends JFrame {
     /**
      * Метод проверки доступности клетки для хода
      *
-     * @param x - по горизонтали
-     * @param y - по вертикали
+     * @param x по горизонтали
+     * @param y по вертикали
      * @return boolean
      */
     boolean isTurnable(int x, int y) {
         boolean result = false;
-
         if (gameField[y][x] == nullSymbol)
             result = true;
         return result;
@@ -100,13 +118,18 @@ public class GameBoard extends JFrame {
     /**
      * Обновление матрицы игры после хода
      *
-     * @param x - по горизонтали
-     * @param y - по вертикали
+     * @param x по горизонтали
+     * @param y по вертикали
      */
     void updateGameField(int x, int y) {
         gameField[y][x] = game.getCurrentPlayer().getPlayerSign();
     }
-
+    void updateGameFieldTest(int x, int y) {
+        gameField[y][x] = 'X';
+    }
+    void updateGameFieldTestNull(int x, int y) {
+        gameField[y][x] = nullSymbol;
+    }
     /**
      * Проверка победы по столбцам и линиям
      *
@@ -120,9 +143,19 @@ public class GameBoard extends JFrame {
         if (checkWinDiagonals(playerSymbol) || checkWinLines(playerSymbol)) {
             result = true;
         }
-
         return result;
     }
+    boolean checkWin(char x) {
+        boolean result = false;
+
+        char playerSymbol = x;
+
+        if (checkWinDiagonals(playerSymbol) || checkWinLines(playerSymbol)) {
+            result = true;
+        }
+        return result;
+    }
+
 
     /**
      * Метод проверки заполненности поля
@@ -134,10 +167,16 @@ public class GameBoard extends JFrame {
 
         for (int i = 0; i < dimension; i++) {
             for (int j = 0; j < dimension; j++) {
-                if (gameField[i][j] == nullSymbol)
+                if (gameField[i][j] == nullSymbol) {
                     result = false;
+                    break;
+                }
+            }
+            if (!result) {
+                break;
             }
         }
+
         return result;
     }
 
@@ -151,50 +190,48 @@ public class GameBoard extends JFrame {
 
         result = false;
 
-        for (int col = 0; col < dimension; col++) {
+        for (int col = 0; col < dimension; col++) { //цикл1
             cols = true;
             rows = true;
 
-            for (int row = 0; row < dimension; row++) {
+            for (int row = 0; row < dimension; row++) { //цикл2
                 cols &= (gameField[col][row] == playerSymbol);
                 rows &= (gameField[row][col] == playerSymbol);
             }
 
-            // Это условие после каждой проверки колонки и столбца
-            // позволяет остановить дальнейшее выполнение, без проверки
-            // всех остальных столбцов и строк.
-            if (cols || rows) {
+            // если выигрышная комбинация найдена - прекращаем проверять
+            if (cols || rows) { //
                 result = true;
-                break;
-            }
+                //break; //зачем??
+            } //проверяем наличие комбинации
 
             if (result) {
                 break;
-            }
+            }//выходим из цикла1
         }
-
         return result;
     }
 
+
     /**
-     * Проверка выигрышных комбинаций на диагоналях
+     * Проверка победы по диагоналям
      *
      * @return флаг победы
      */
-    private boolean checkWinDiagonals(char playersSymbol) {
-        boolean leftRight, rightLeft, result;
-
-        leftRight = true;
-        rightLeft = true;
-        result = false;
+    private boolean checkWinDiagonals(char playerSymbol) {
+        boolean diagonal1, diagonal2, result;
+        diagonal1 = true;
+        diagonal2 = true;
+        result = true;
 
         for (int i = 0; i < dimension; i++) {
-            leftRight &= (gameField[i][i] == playersSymbol); //оптимизация кода, чтобы не было через if/else
-            rightLeft &= (gameField[dimension - i - 1][i] == playersSymbol);
-        }
+            diagonal1 &= (gameField[i][i] == playerSymbol);
+            diagonal2 &= (gameField[i][dimension - 1 - i] == playerSymbol);
 
-        if (leftRight || rightLeft) {
-            result = true;
+            if (!diagonal1 && !diagonal2) { //
+                result = false;
+                break;
+            }
         }
 
         return result;
@@ -203,4 +240,9 @@ public class GameBoard extends JFrame {
     public GameButton getButton(int buttonIndex) {
         return gameButtons[buttonIndex];
     }
+
+
+
+
+
 }
